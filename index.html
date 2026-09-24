@@ -808,12 +808,11 @@
               <div class="event-venue">📍 Friars Street, Newcastle upon Tyne (NE1 4XN)</div>
               <p class="event-details">Pre-ordered 3-course dinner in the historic medieval banquet hall. Cost is <strong>£110 per person</strong> (covers James A as groom, plus includes a <strong>£113 group drinks credit</strong>!). Followed by Newcastle nightlife.</p>
               <div class="event-tags">
-                <span class="tag highlight">💳 £110/pp to Richard Tosh</span>
+                <span class="tag highlight">💳 £110/pp (Transfer to RT)</span>
                 <span class="tag">🍷 £113 Drinks Credit Included</span>
                 <span class="tag">🍻 Bigg Market / Quayside After</span>
               </div>
               <div class="card-actions">
-                <button type="button" onclick="copyBankDetails()" class="btn btn-primary btn-sm">📋 Copy RT Bank Details (£110)</button>
                 <a href="https://www.google.com/maps/dir/?api=1&destination=Blackfriars+Restaurant+Newcastle+NE1+4XN" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">🗺️ Directions</a>
               </div>
             </div>
@@ -893,12 +892,9 @@
           <div class="attendee-card" data-cat="2nights">
             <div class="attendee-left">
               <h4>🍷 Richard Tosh / RT (F&B Lead)</h4>
-              <p>Fri 13:18 LNER • 2 Nights • <strong>Dinner Payment: £110</strong></p>
+              <p>Fri 13:18 LNER train • 2 Nights • Dinner Coordinator</p>
             </div>
-            <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">
-              <button type="button" class="attendee-badge" style="cursor:pointer; border:1px solid var(--gold); color:#e3b341;" onclick="copyBankDetails()">💳 Copy Bank Details</button>
-              <a href="https://wa.me/447810012907" target="_blank" rel="noopener noreferrer" style="font-size:0.7rem; color:var(--accent); text-decoration:none;">💬 WhatsApp RT</a>
-            </div>
+            <span class="attendee-badge">Private Room</span>
           </div>
 
           <!-- Pablo Savva -->
@@ -1123,22 +1119,9 @@
             </div>
           </div>
 
-          <div class="step-card" style="border: 1px solid var(--gold); background: rgba(210,153,34,0.06);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-              <h3 style="font-size:0.95rem; color:#fff;"><span class="step-num" style="background:var(--gold);">★</span> Saturday Dinner Payment: £110</h3>
-              <span class="event-pill pill-food">Due Soon</span>
-            </div>
-            <p style="font-size:0.82rem; color:#c9d1d9; margin-bottom:8px;">Richard Tosh locked in the Blackfriars menu. Cost is <strong>£110 per person</strong> (covers James A's meal + includes a <strong>£113 group drinks credit</strong>). Send to Richard Tosh:</p>
-            <div style="background:rgba(0,0,0,0.3); padding:8px 12px; border-radius:8px; font-size:0.8rem; margin-bottom:10px; font-family:monospace;">
-              <strong>Richard Tosh</strong><br>
-              Sort Code: <strong>40-04-37</strong><br>
-              Account: <strong>91630652</strong><br>
-              Amount: <strong>£110.00</strong>
-            </div>
-            <div class="card-actions">
-              <button type="button" onclick="copyBankDetails()" class="btn btn-primary btn-sm">📋 1-Tap Copy Bank Details</button>
-              <a href="https://wa.me/447810012907" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">💬 Message RT</a>
-            </div>
+          <div class="step-card">
+            <h3 style="font-size:0.95rem; color:#fff; margin-bottom:6px;"><span class="step-num">★</span> Saturday Dinner Contribution: £110</h3>
+            <p style="font-size:0.82rem; color:#c9d1d9;">Richard Tosh locked in the Blackfriars menu. Cost is <strong>£110 per person</strong> (covers your meal, James A's meal, and includes a <strong>£113 group drinks credit</strong>). Settle transfer with Richard directly via the WhatsApp group.</p>
           </div>
 
           <div class="step-card">
@@ -1466,23 +1449,6 @@
           card.classList.add('hidden');
         }
       });
-    }
-
-    function copyBankDetails() {
-      const details = "Richard Tosh\nSort Code: 40-04-37\nAccount: 91630652\nAmount: £110.00\nRef: Pablo Savva Stag Dinner";
-      try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(details).then(() => {
-            showToast("💳 Copied Richard Tosh's bank details (£110)!");
-          }).catch(() => {
-            showToast("💳 40-04-37 / 91630652 (Richard Tosh £110)");
-          });
-        } else {
-          showToast("💳 40-04-37 / 91630652 (Richard Tosh £110)");
-        }
-      } catch (e) {
-        showToast("💳 40-04-37 / 91630652 (Richard Tosh £110)");
-      }
     }
 
     function showToast(msg) {
