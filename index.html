@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>James A's Stagathon | Live Event Co-Pilot</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --card-border: #30363d;
+      --card-hover: #21262d;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+      --accent-glow: rgba(88, 166, 255, 0.25);
+      --gold: #d29922;
+      --gold-bg: rgba(210, 153, 34, 0.15);
+      --green: #238636;
+      --green-glow: rgba(35, 134, 54, 0.35);
+      --red: #da3633;
+      --purple: #bc8cff;
+      --purple-bg: rgba(188, 140, 255, 0.15);
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    html, body {
+      height: 100%;
+      height: 100dvh;
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-family);
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top App Header with iOS Safe Area */
+    header {
+      flex-shrink: 0;
+      background: #161b22;
+      border-bottom: 1px solid var(--card-border);
+      padding: max(12px, env(safe-area-inset-top, 0px)) 16px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 20;
+    }
+    .header-info h1 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      line-height: 1.2;
+    }
+    .header-info p {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge-live {
+      background: rgba(35, 134, 54, 0.2);
+      color: #3fb950;
+      border: 1px solid #238636;
+      padding: 3px 8px;
+      border-radius: 16px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .badge-live::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      background: #3fb950;
+      border-radius: 50%;
+      display: inline-block;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 0.4; }
+      50% { opacity: 1; transform: scale(1.2); }
+      100% { opacity: 0.4; }
+    }
+
+    /* Simulation Strip */
+    .sim-strip {
+      flex-shrink: 0;
+      background: #12161d;
+      border-bottom: 1px solid var(--card-border);
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 0.78rem;
+      z-index: 15;
+    }
+    .sim-strip label {
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+    .sim-select {
+      background: #21262d;
+      color: #fff;
+      border: 1px solid var(--card-border);
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      flex: 1;
+      max-width: 280px;
+      outline: none;
+    }
+    .sim-select:focus {
+      border-color: var(--accent);
+    }
+
+    /* Prevent mobile browser zoom on input focus */
+    @media (max-width: 600px) {
+      .sim-select, .search-input {
+        font-size: 16px !important;
+      }
+    }
+
+    /* Scrollable Main Body */
+    .app-main {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 16px;
+    }
+
+    .content-container {
+      max-width: 620px;
+      margin: 0 auto;
+    }
+
+    /* Filter Chips Bar */
+    .chips-bar {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+      scrollbar-width: none;
+    }
+    .chips-bar::-webkit-scrollbar { display: none; }
+    .chip {
+      background: #161b22;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    .chip.active {
+      background: var(--accent);
+      color: #0d1117;
+      border-color: var(--accent);
+    }
+
+    /* Now & Next Hero Card */
+    .hero-card {
+      background: linear-gradient(135deg, rgba(88,166,255,0.12) 0%, rgba(188,140,255,0.08) 100%);
+      border: 1px solid var(--accent);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 20px var(--accent-glow);
+    }
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .hero-tag {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .hero-time {
+      font-size: 0.8rem;
+      font-weight: 700;
+      background: rgba(255,255,255,0.1);
+      padding: 2px 8px;
+      border-radius: 6px;
+      color: #fff;
+    }
+    .hero-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+      line-height: 1.25;
+    }
+    .hero-desc {
+      font-size: 0.84rem;
+      color: #c9d1d9;
+      margin-bottom: 12px;
+    }
+    .hero-venue-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0,0,0,0.35);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      margin-bottom: 12px;
+    }
+    .hero-venue-name {
+      color: #fff;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+    .hero-venue-transit {
+      color: var(--accent);
+      font-weight: 600;
+      white-space: nowrap;
+      margin-left: 8px;
+      flex-shrink: 0;
+    }
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      flex: 1;
+      min-width: 100px;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #0d1117;
+    }
+    .btn-primary:active { transform: scale(0.98); background: #79b8ff; }
+    .btn-secondary {
+      background: #21262d;
+      color: #c9d1d9;
+      border: 1px solid var(--card-border);
+    }
+    .btn-secondary:active { background: #30363d; }
+    .btn-uber {
+      background: #000;
+      color: #fff;
+      border: 1px solid #333;
+    }
+
+    .hero-next-strip {
+      border-top: 1px dashed rgba(255,255,255,0.18);
+      margin-top: 12px;
+      padding-top: 8px;
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .hero-next-strip strong {
+      color: var(--purple);
+    }
+
+    /* Day Dividers */
+    .day-divider {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 20px 0 10px 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .day-divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--card-border);
+    }
+
+    /* Event Cards */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .event-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 14px;
+      transition: border 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+    }
+    .event-card.current {
+      border-color: var(--accent);
+      background: linear-gradient(180deg, #1c232d 0%, #161b22 100%);
+      box-shadow: 0 0 16px rgba(88, 166, 255, 0.2);
+    }
+    .event-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 4px;
+    }
+    .event-time {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+    .event-pill {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      text-transform: uppercase;
+    }
+    .pill-food { background: var(--gold-bg); color: #e3b341; border: 1px solid rgba(210, 153, 34, 0.4); }
+    .pill-walk { background: rgba(35, 134, 54, 0.15); color: #56d364; border: 1px solid rgba(35, 134, 54, 0.4); }
+    .pill-drinks { background: var(--purple-bg); color: #d2a8ff; border: 1px solid rgba(188, 140, 255, 0.4); }
+    .pill-hotel { background: rgba(88, 166, 255, 0.15); color: #79b8ff; border: 1px solid rgba(88, 166, 255, 0.4); }
+
+    .event-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: #fff;
+    }
+    .event-venue {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .event-details {
+      font-size: 0.82rem;
+      color: #c9d1d9;
+      line-height: 1.45;
+      margin-bottom: 10px;
+    }
+    .event-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+    .tag {
+      font-size: 0.7rem;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: #21262d;
+      color: #8b949e;
+    }
+    .tag.highlight {
+      background: rgba(218, 54, 51, 0.15);
+      color: #ff7b72;
+      border: 1px solid rgba(218, 54, 51, 0.3);
+      font-weight: 600;
+    }
+    .card-actions {
+      display: flex;
+      gap: 6px;
+    }
+    .btn-sm {
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      border-radius: 6px;
+    }
+
+    /* Attendee Cards */
+    .search-input {
+      width: 100%;
+      background: #161b22;
+      border: 1px solid var(--card-border);
+      padding: 10px 14px;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 0.85rem;
+      margin-bottom: 12px;
+      outline: none;
+    }
+    .search-input:focus { border-color: var(--accent); }
+    
+    .attendee-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .attendee-left h4 {
+      font-size: 0.92rem;
+      color: #fff;
+      margin-bottom: 2px;
+    }
+    .attendee-left p {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+    .attendee-badge {
+      font-size: 0.68rem;
+      padding: 3px 8px;
+      border-radius: 8px;
+      font-weight: 600;
+      background: #21262d;
+      color: var(--accent);
+      border: 1px solid var(--card-border);
+      white-space: nowrap;
+      margin-left: 8px;
+    }
+    .badge-warning {
+      background: var(--gold-bg);
+      color: #e3b341;
+      border-color: rgba(210, 153, 34, 0.3);
+    }
+
+    /* Pablo Special Hub Cards */
+    .pablo-banner {
+      background: linear-gradient(135deg, rgba(35,134,54,0.15) 0%, rgba(88,166,255,0.1) 100%);
+      border: 1px solid #238636;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .step-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+    .step-num {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      background: var(--accent);
+      color: #0d1117;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 24px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      margin-right: 8px;
+    }
+
+    /* Floating Toast Notification */
+    #toast {
+      position: fixed;
+      bottom: 72px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #238636;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s ease;
+      z-index: 100;
+      white-space: nowrap;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Fixed Bottom Navigation (Flex Anchored with iOS Safe Area) */
+    nav.bottom-nav {
+      flex-shrink: 0;
+      background: #161b22;
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-around;
+      padding: 6px 0 max(6px, env(safe-area-inset-bottom, 0px));
+      z-index: 50;
+    }
+    .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 8px;
+      transition: color 0.15s ease;
+      flex: 1;
+    }
+    .nav-btn.active {
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .nav-btn:hover {
+      color: #fff;
+    }
+    .nav-icon {
+      font-size: 1.15rem;
+      line-height: 1;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header>
+    <div class="header-info">
+      <h1>🏰 James' Stagathon</h1>
+      <p>Lumley Castle & Newcastle • 25–27 Sept 2026</p>
+    </div>
+    <div class="header-controls">
+      <div class="badge-live" id="live-indicator">LIVE</div>
+    </div>
+  </header>
+
+  <!-- Live / Simulation Strip -->
+  <div class="sim-strip">
+    <label for="time-simulator">🕒 <strong>Preview:</strong></label>
+    <select id="time-simulator" class="sim-select" onchange="simulateTime(this.value)">
+      <option value="START">🔄 Reset to Start (Fri 13:18 Arrivals)</option>
+      <option value="FRI_1300">Fri 13:18 (Train Arrivals & Welcome Pints)</option>
+      <option value="FRI_1500">Fri 15:00 (Lumley Castle Check-In)</option>
+      <option value="FRI_1600">Fri 16:00 (Castle Grounds Walk)</option>
+      <option value="FRI_1830">Fri 18:30 (Library Bar Drinks)</option>
+      <option value="FRI_1930">Fri 19:30 (Knights Restaurant Dinner)</option>
+      <option value="SAT_1045">Sat 10:45 (Scenic Countryside Hike)</option>
+      <option value="SAT_1330">Sat 13:30 (Pub Lunch @ Chester Moor)</option>
+      <option value="SAT_1730">Sat 17:30 (Taxis to Newcastle)</option>
+      <option value="SAT_1800">Sat 18:00 (Whiskey Tasting @ Blackfriars)</option>
+      <option value="SAT_2000">Sat 20:00 (Group Dinner @ Blackfriars)</option>
+      <option value="SUN_1100">Sun 11:00 (Check-Out & Departures)</option>
+    </select>
+  </div>
+
+  <!-- Scrollable Main Container -->
+  <main class="app-main" id="main-scroll">
+    <div class="content-container">
+
+      <!-- ============================================== -->
+      <!-- TAB 1: SCHEDULE / LIVE AGENDA                  -->
+      <!-- ============================================== -->
+      <section id="tab-schedule">
+
+        <!-- Now & Next Hero Card -->
+        <div class="hero-card" id="hero-card">
+          <div class="hero-top">
+            <span class="hero-tag">⚡ Happening Now</span>
+            <span class="hero-time" id="hero-time-badge">Friday 13:18</span>
+          </div>
+          <h2 class="hero-title" id="hero-title">Station Arrival & Welcome Pints</h2>
+          <p class="hero-desc" id="hero-desc">London train arrives into Durham Station. Dan arrives from Bristol. Welcome pints and lunch in Durham.</p>
+          
+          <div class="hero-venue-bar">
+            <span class="hero-venue-name">📍 <strong id="hero-location">Durham Railway Station</strong></span>
+            <span class="hero-venue-transit" id="hero-transit">12 mins taxi</span>
+          </div>
+
+          <div class="hero-actions">
+            <a id="hero-maps-btn" href="https://www.google.com/maps/dir/?api=1&destination=Durham+Railway+Station+DH1+4RB" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+              🗺️ Directions
+            </a>
+            <a id="hero-uber-btn" href="https://m.uber.com/ul/?action=setPickup&dropoff[formatted_address]=Durham+Railway+Station+DH1+4RB" target="_blank" rel="noopener noreferrer" class="btn btn-uber">
+              🚕 Uber
+            </a>
+            <button onclick="sharePlan()" class="btn btn-secondary">
+              📤 Share
+            </button>
+          </div>
+
+          <div class="hero-next-strip" id="hero-next-strip">
+            <span>Next: <strong id="hero-next-title">15:00 Check-In @ Lumley Castle</strong></span>
+            <span id="hero-next-countdown">in 1h 42m</span>
+          </div>
+        </div>
+
+        <!-- Day Filter Chips -->
+        <div class="chips-bar">
+          <button type="button" class="chip active" onclick="filterScheduleDay('all', this)">All Weekend</button>
+          <button type="button" class="chip" onclick="filterScheduleDay('fri', this)">Friday 25</button>
+          <button type="button" class="chip" onclick="filterScheduleDay('sat', this)">Saturday 26</button>
+          <button type="button" class="chip" onclick="filterScheduleDay('sun', this)">Sunday 27</button>
+        </div>
+
+        <!-- Schedule Timeline -->
+        <div class="timeline" id="schedule-timeline">
+
+          <!-- FRIDAY -->
+          <div class="day-group" data-day="fri">
+            <div class="day-divider">Friday, 25 September 2026</div>
+
+            <div class="event-card" id="ev-fri-1">
+              <div class="event-top">
+                <span class="event-time">13:18</span>
+                <span class="event-pill pill-hotel">Arrival</span>
+              </div>
+              <h3 class="event-title">London & Bristol Group Arrival</h3>
+              <div class="event-venue">📍 Durham Railway Station (DH1 4RB)</div>
+              <p class="event-details">10:33 LNER train arrives from Kings Cross (James P, James A, Alex, Rich). Dan arrives from Bristol. Meetup for quick lunch & welcome pints.</p>
+              <div class="event-tags">
+                <span class="tag">🚆 LNER / CrossCountry</span>
+                <span class="tag">🚕 12 mins taxi to Castle</span>
+              </div>
+              <div class="card-actions">
+                <a href="https://www.google.com/maps/dir/?api=1&destination=Durham+Railway+Station+DH1+4RB" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">🗺️ Directions</a>
+                <a href="https://m.uber.com/ul/?action=setPickup&dropoff[formatted_address]=Durham+Railway+Station+DH1+4RB" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">🚕 Uber</a>
+              </div>
+            </div>
+
+            <div class="event-card" id="ev-fri-2">
+              <div class="event-top">
+                <span class="event-time">15:00</span>
+                <span class="event-pill pill-hotel">Check-In</span>
+              </div>
+              <h3 class="event-title">Hotel Check-In & Bag Drop</h3>
+              <div class="event-venue">📍 Lumley Castle Hotel (DH3 4NX)</div>
+              <p class="event-details">Check-in opens. Just state your name at reception. Rooms are fully prepaid by James P. Free resident parking.</p>
+              <div class="event-tags">
+                <span class="tag">🏰 14th-Century Castle</span>
+                <span class="tag">🅿️ Free Parking</span>
+              </div>
+              <div class="card-actions">
+                <a href="https://www.google.com/maps/dir/?api=1&destination=Lumley+Castle+Hotel+DH3+4NX" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">🗺️ Directions</a>
+              </div>
+            </div>
+
+            <div class="event-card" id="ev-fri-3">
+              <div class="event-top">
+                <span class="event-time">16:00 – 17:30</span>
+                <span class="event-pill pill-walk">Walk</span>
+              </div>
+              <h3 class="event-title">Castle Grounds & River Wear Walk</h3>
+              <div class="event-venue">📍 Lumley Castle Grounds</div>
+              <p class="event-details">Casual 1 to 1.5-hour group walk around the castle parkland, woodlands, and the River Wear loop. Relaxed pace.</p>
+              <div class="event-tags">
+                <span class="tag">👟 Normal Trainers Fine</span>
+                <span class="tag">⏱️ ~1.5 Hours</span>
+              </div>
+            </div>
+
+            <div class="event-card" id="ev-fri-4">
+              <div class="event-top">
+                <span class="event-time">18:30</span>
+                <span class="event-pill pill-drinks">Drinks</span>
+              </div>
+              <h3 class="event-title">Pre-Dinner Drinks in Library Bar</h3>
+              <div class="event-venue">📍 Library Bar (Inside Lumley Castle)</div>
+              <p class="event-details">Reconvene for drinks. Mark Stapleton arrives and joins the group here.</p>
+              <div class="event-tags">
+                <span class="tag">🍸 Cocktails & Pints</span>
+                <span class="tag">👔 Smart Casual</span>
+              </div>
+            </div>
+
+            <div class="event-card" id="ev-fri-5">
+              <div class="event-top">
+                <span class="event-time">19:30</span>
+                <span class="event-pill pill-food">Dinner</span>
+              </div>
+              <h3 class="event-title">Dinner at Knights Restaurant</h3>
+              <div class="event-venue">📍 Knights Restaurant (Lumley Castle)</div>
+              <p class="event-details">Group dinner in the castle's vaulted stone restaurant hall. Followed by board games and drinks in the lounge.</p>
+              <div class="event-tags">
+                <span class="tag">🍽️ Castle Banquet</span>
+                <span class="tag">🎲 Board Games Late</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- SATURDAY -->
+          <div class="day-group" data-day="sat">
+            <div class="day-divider">Saturday, 26 September 2026</div>
+
+            <div class="event-card" id="ev-sat-1">
+              <div class="event-top">
+                <span class="event-time">08:30 – 10:30</span>
+                <span class="event-pill pill-food">Breakfast</span>
+              </div>
+              <h3 class="event-title">Breakfast at Leisure</h3>
+              <div class="event-venue">📍 Castle or Chester-le-Street Town</div>
+              <p class="event-details">Breakfast not included in room rate. Options at castle dining room or in town (30 min walk / 5 min taxi). Andy departs today.</p>
+            </div>
+
+            <div class="event-card" id="ev-sat-2">
+              <div class="event-top">
+                <span class="event-time">10:45 – 13:15</span>
+                <span class="event-pill pill-walk">Scenic Hike</span>
+              </div>
+              <h3 class="event-title">Countryside Hike (Led by Alex)</h3>
+              <div class="event-venue">📍 Depart Lumley Castle Courtyard</div>
+              <p class="event-details">4–5 mile scenic countryside hike through local fells and trails, ending at the pub for lunch.</p>
+              <div class="event-tags">
+                <span class="tag highlight">🥾 Muddy Paths: Wear Trail Shoes</span>
+                <span class="tag">🌧️ Waterproof Jacket</span>
+              </div>
+            </div>
+
+            <div class="event-card" id="ev-sat-3">
+              <div class="event-top">
+                <span class="event-time">13:30</span>
+                <span class="event-pill pill-food">Pub Lunch</span>
+              </div>
+              <h3 class="event-title">Pub Lunch @ The Chester Moor</h3>
+              <div class="event-venue">📍 Front Street, Chester Moor (DH2 3RJ)</div>
+              <p class="event-details">Hearty pub lunch and pints. Mehal arrives midday and joins the group here. 5-min cab/lift back to castle after.</p>
+              <div class="event-tags">
+                <span class="tag">🍺 Pints & Lunch</span>
+                <span class="tag">🚕 5 mins back to castle</span>
+              </div>
+              <div class="card-actions">
+                <a href="https://www.google.com/maps/dir/?api=1&destination=The+Chester+Moor+DH2+3RJ" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">🗺️ Directions</a>
+                <a href="https://m.uber.com/ul/?action=setPickup&dropoff[formatted_address]=The+Chester+Moor+DH2+3RJ" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">🚕 Uber</a>
+              </div>
+            </div>
+
+            <div class="event-card" id="ev-sat-4">
+              <div class="event-top">
+                <span class="event-time">17:30</span>
+                <span class="event-pill pill-hotel">Transfer</span>
+              </div>
+              <h3 class="event-title">Taxis Depart for Newcastle</h3>
+              <div class="event-venue">📍 Lumley Castle Main Entrance</div>
+              <p class="event-details">Pre-booked group taxis depart hotel for central Newcastle (~25 mins drive).</p>
+              <div class="event-tags">
+                <span class="tag">🚕 25 mins ride</span>
+                <span class="tag">👔 Smart Casual Attire</span>
+              </div>
+            </div>
+
+            <div class="event-card" id="ev-sat-5">
+              <div class="event-top">
+                <span class="event-time">18:00 – 19:45</span>
+                <span class="event-pill pill-drinks">Tasting & Quiz</span>
+              </div>
+              <h3 class="event-title">Whiskey Tasting Experience & Quiz</h3>
+              <div class="event-venue">📍 Blackfriars Restaurant, Newcastle (NE1 4XN)</div>
+              <p class="event-details">Hosted in the medieval friary. Includes welcome craft beer, artisan snacks, tutored premium whiskey tasting & quiz.</p>
+              <div class="event-tags">
+                <span class="tag">🥃 Craft Beer & Whiskey</span>
+                <span class="tag">🏆 Group Quiz</span>
+              </div>
+              <div class="card-actions">
+                <a href="https://www.google.com/maps/dir/?api=1&destination=Blackfriars+Restaurant+Newcastle+NE1+4XN" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">🗺️ Directions</a>
+              </div>
+            </div>
+
+            <div class="event-card" id="ev-sat-6">
+              <div class="event-top">
+                <span class="event-time">20:00</span>
+                <span class="event-pill pill-food">Dinner</span>
+              </div>
+              <h3 class="event-title">Group Dinner at Blackfriars Banquet Hall</h3>
+              <div class="event-venue">📍 Friars Street, Newcastle upon Tyne (NE1 4XN)</div>
+              <p class="event-details">Pre-ordered 3-course dinner in the historic medieval banquet hall. Cost is <strong>£110 per person</strong> (covers James A as groom, plus includes a <strong>£113 group drinks credit</strong>!). Followed by Newcastle nightlife.</p>
+              <div class="event-tags">
+                <span class="tag highlight">💳 £110/pp to Richard Tosh</span>
+                <span class="tag">🍷 £113 Drinks Credit Included</span>
+                <span class="tag">🍻 Bigg Market / Quayside After</span>
+              </div>
+              <div class="card-actions">
+                <button type="button" onclick="copyBankDetails()" class="btn btn-primary btn-sm">📋 Copy RT Bank Details (£110)</button>
+                <a href="https://www.google.com/maps/dir/?api=1&destination=Blackfriars+Restaurant+Newcastle+NE1+4XN" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">🗺️ Directions</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUNDAY -->
+          <div class="day-group" data-day="sun">
+            <div class="day-divider">Sunday, 27 September 2026</div>
+
+            <div class="event-card" id="ev-sun-1">
+              <div class="event-top">
+                <span class="event-time">09:30 – 10:45</span>
+                <span class="event-pill pill-food">Breakfast</span>
+              </div>
+              <h3 class="event-title">Debrief Breakfast & Packing</h3>
+              <div class="event-venue">📍 Lumley Castle Dining Room</div>
+              <p class="event-details">Coffee, hearty breakfast, and debriefing the weekend shenanigans.</p>
+            </div>
+
+            <div class="event-card" id="ev-sun-2">
+              <div class="event-top">
+                <span class="event-time">By 11:00</span>
+                <span class="event-pill pill-hotel">Checkout</span>
+              </div>
+              <h3 class="event-title">Hotel Check-Out & Goodbyes</h3>
+              <div class="event-venue">📍 Lumley Castle Reception</div>
+              <p class="event-details">Vacate rooms by 11:00. Head to Durham Station for southbound trains or drive home!</p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- TAB 2: ROSTER / ATTENDEES                      -->
+      <!-- ============================================== -->
+      <section id="tab-roster" class="hidden">
+        <input type="text" class="search-input" id="attendee-search" placeholder="🔍 Search attendees (e.g. Alex, Andy, Mehal)..." oninput="applyRosterFilter()">
+
+        <!-- Roster Filter Chips -->
+        <div class="chips-bar">
+          <button type="button" class="chip active" onclick="setRosterCategory('all', this)">All (11)</button>
+          <button type="button" class="chip" onclick="setRosterCategory('2nights', this)">2 Nights (9)</button>
+          <button type="button" class="chip" onclick="setRosterCategory('1night', this)">1 Night (2)</button>
+          <button type="button" class="chip" onclick="setRosterCategory('driver', this)">Drivers (4)</button>
+        </div>
+
+        <div id="attendees-list">
+          <!-- James A -->
+          <div class="attendee-card" data-cat="2nights">
+            <div class="attendee-left">
+              <h4>👑 James A (The Groom)</h4>
+              <p>Fri 13:18 LNER train • 2 Nights • Room Prepaid</p>
+            </div>
+            <span class="attendee-badge">Private Room</span>
+          </div>
+
+          <!-- James P -->
+          <div class="attendee-card" data-cat="2nights">
+            <div class="attendee-left">
+              <h4>⭐ James Patterson (Host)</h4>
+              <p>Fri 13:18 LNER train • 2 Nights • Organizer</p>
+            </div>
+            <span class="attendee-badge">Sharing w/ Alex</span>
+          </div>
+
+          <!-- Alex -->
+          <div class="attendee-card" data-cat="2nights">
+            <div class="attendee-left">
+              <h4>🥾 Alex (Hike Lead)</h4>
+              <p>Fri 13:18 LNER train • 2 Nights • Leading Sat Walk</p>
+            </div>
+            <span class="attendee-badge">Sharing w/ James P</span>
+          </div>
+
+          <!-- Richard Tosh -->
+          <div class="attendee-card" data-cat="2nights">
+            <div class="attendee-left">
+              <h4>🍷 Richard Tosh / RT (F&B Lead)</h4>
+              <p>Fri 13:18 LNER • 2 Nights • <strong>Dinner Payment: £110</strong></p>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">
+              <button type="button" class="attendee-badge" style="cursor:pointer; border:1px solid var(--gold); color:#e3b341;" onclick="copyBankDetails()">💳 Copy Bank Details</button>
+              <a href="https://wa.me/447810012907" target="_blank" rel="noopener noreferrer" style="font-size:0.7rem; color:var(--accent); text-decoration:none;">💬 WhatsApp RT</a>
+            </div>
+          </div>
+
+          <!-- Pablo Savva -->
+          <div class="attendee-card" data-cat="2nights driver">
+            <div class="attendee-left">
+              <h4>🚗 Pablo Savva</h4>
+              <p>Fri ~13:00 (Kia EV6 from Scotland) • 2 Nights</p>
+            </div>
+            <span class="attendee-badge">Private Room</span>
+          </div>
+
+          <!-- Mark Stapleton -->
+          <div class="attendee-card" data-cat="2nights driver">
+            <div class="attendee-left">
+              <h4>🚗 Mark Stapleton</h4>
+              <p>Fri ~18:30 (Driving via site visits) • 2 Nights</p>
+            </div>
+            <span class="attendee-badge">Private Room</span>
+          </div>
+
+          <!-- Chris -->
+          <div class="attendee-card" data-cat="2nights driver">
+            <div class="attendee-left">
+              <h4>🚗 Chris</h4>
+              <p>Fri Morning (Driving, station lift hero) • 2 Nights</p>
+            </div>
+            <span class="attendee-badge">Private Room</span>
+          </div>
+
+          <!-- Sam Hayhurst -->
+          <div class="attendee-card" data-cat="2nights">
+            <div class="attendee-left">
+              <h4>🚆 Sam Hayhurst</h4>
+              <p>Fri Midday • 2 Nights • Attending all events</p>
+            </div>
+            <span class="attendee-badge">Private Room</span>
+          </div>
+
+          <!-- Dan -->
+          <div class="attendee-card" data-cat="2nights">
+            <div class="attendee-left">
+              <h4>🚆 Dan</h4>
+              <p>Fri 13:18 (Train from Bristol) • 2 Nights</p>
+            </div>
+            <span class="attendee-badge">Private Room</span>
+          </div>
+
+          <!-- Andreas Phillips -->
+          <div class="attendee-card" data-cat="1night driver">
+            <div class="attendee-left">
+              <h4>🚗 Andreas Phillips (Andy)</h4>
+              <p>Fri Morning (Driving) • <strong>Departs Saturday</strong></p>
+            </div>
+            <span class="attendee-badge badge-warning">1 Night (Fri only)</span>
+          </div>
+
+          <!-- Mehal Shah -->
+          <div class="attendee-card" data-cat="1night">
+            <div class="attendee-left">
+              <h4>🚆 Mehal Shah</h4>
+              <p><strong>Arrives Sat ~12:00</strong> (Chester Moor Lunch)</p>
+            </div>
+            <span class="attendee-badge badge-warning">1 Night (Sat only)</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- TAB 3: MAPS & LOCATIONS DIRECTORY              -->
+      <!-- ============================================== -->
+      <section id="tab-locations" class="hidden">
+        
+        <div class="chips-bar">
+          <button type="button" class="chip active" onclick="filterLocations('all', this)">All Locations</button>
+          <button type="button" class="chip" onclick="filterLocations('base', this)">Castle Basecamp</button>
+          <button type="button" class="chip" onclick="filterLocations('food', this)">Food & Drinks</button>
+          <button type="button" class="chip" onclick="filterLocations('transit', this)">Transit & EV</button>
+        </div>
+
+        <div class="timeline" id="locations-list">
+          
+          <div class="event-card" data-loc-cat="base">
+            <div class="event-top">
+              <span class="event-time">Basecamp</span>
+              <span class="event-pill pill-hotel">Hotel</span>
+            </div>
+            <h3 class="event-title">🏰 Lumley Castle Hotel</h3>
+            <div class="event-venue">📍 Ropery Lane, Chester-le-Street, DH3 4NX</div>
+            <p class="event-details">14th-century castle hotel. Free guest parking on-site. Bar, restaurant, and courtyards.</p>
+            <div class="event-tags">
+              <span class="tag">📞 +44 191 389 1111</span>
+              <span class="tag">🅿️ Free Resident Parking</span>
+            </div>
+            <div class="card-actions">
+              <a href="https://www.google.com/maps/dir/?api=1&destination=Lumley+Castle+Hotel+DH3+4NX" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">🗺️ Directions</a>
+              <a href="tel:+441913891111" class="btn btn-secondary btn-sm">📞 Call Hotel</a>
+            </div>
+          </div>
+
+          <div class="event-card" data-loc-cat="transit">
+            <div class="event-top">
+              <span class="event-time">Train Meetup</span>
+              <span class="event-pill pill-hotel">Station</span>
+            </div>
+            <h3 class="event-title">🚆 Durham Railway Station</h3>
+            <div class="event-venue">📍 Station Approach, Durham, DH1 4RB</div>
+            <p class="event-details">London & Bristol arrivals at 13:18. 6.2 miles from Lumley Castle (~12 mins taxi).</p>
+            <div class="card-actions">
+              <a href="https://www.google.com/maps/dir/?api=1&destination=Durham+Railway+Station+DH1+4RB" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">🗺️ Directions</a>
+              <a href="https://m.uber.com/ul/?action=setPickup&dropoff[formatted_address]=Durham+Railway+Station+DH1+4RB" target="_blank" rel="noopener noreferrer" class="btn btn-uber btn-sm">🚕 Uber</a>
+            </div>
+          </div>
+
+          <div class="event-card" data-loc-cat="food">
+            <div class="event-top">
+              <span class="event-time">Sat 13:30</span>
+              <span class="event-pill pill-food">Pub Lunch</span>
+            </div>
+            <h3 class="event-title">🍺 The Chester Moor Pub</h3>
+            <div class="event-venue">📍 Front Street, Chester Moor, DH2 3RJ</div>
+            <p class="event-details">Saturday hike lunch stop. Mehal meets the group here. 2.2 miles (5 mins taxi) back to castle.</p>
+            <div class="card-actions">
+              <a href="https://www.google.com/maps/dir/?api=1&destination=The+Chester+Moor+DH2+3RJ" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">🗺️ Directions</a>
+              <a href="https://m.uber.com/ul/?action=setPickup&dropoff[formatted_address]=The+Chester+Moor+DH2+3RJ" target="_blank" rel="noopener noreferrer" class="btn btn-uber btn-sm">🚕 Uber</a>
+            </div>
+          </div>
+
+          <div class="event-card" data-loc-cat="food">
+            <div class="event-top">
+              <span class="event-time">Sat 18:00 & 20:00</span>
+              <span class="event-pill pill-drinks">Tasting & Dinner</span>
+            </div>
+            <h3 class="event-title">🥃 Blackfriars Restaurant (Newcastle)</h3>
+            <div class="event-venue">📍 Friars Street, Newcastle upon Tyne, NE1 4XN</div>
+            <p class="event-details">Medieval Dominican friary. 18:00 Whiskey Tasting flight & Quiz, followed by 20:00 3-course dinner.</p>
+            <div class="event-tags">
+              <span class="tag">📞 +44 191 261 5945</span>
+              <span class="tag">🚕 ~25 mins from Lumley Castle</span>
+            </div>
+            <div class="card-actions">
+              <a href="https://www.google.com/maps/dir/?api=1&destination=Blackfriars+Restaurant+Newcastle+NE1+4XN" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">🗺️ Directions</a>
+              <a href="tel:+441912615945" class="btn btn-secondary btn-sm">📞 Call</a>
+            </div>
+          </div>
+
+          <div class="event-card" data-loc-cat="transit">
+            <div class="event-top">
+              <span class="event-time">350kW CCS</span>
+              <span class="event-pill pill-walk">EV Charger</span>
+            </div>
+            <h3 class="event-title">⚡ Gridserve Washington Services (A1M South)</h3>
+            <div class="event-venue">📍 A1(M) Southbound, Birtley, NE38 9HA</div>
+            <p class="event-details">Pablo's optimal rapid charge stop. 350kW ultra-rapid chargers. 12 mins splash charge gets +35% battery. Just 7 mins north of Lumley Castle.</p>
+            <div class="card-actions">
+              <a href="https://www.google.com/maps/dir/?api=1&destination=Moto+Washington+Services+Southbound+NE38+9HA" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">🗺️ Directions</a>
+            </div>
+          </div>
+
+          <div class="event-card" data-loc-cat="transit">
+            <div class="event-top">
+              <span class="event-time">Essentials</span>
+              <span class="event-pill pill-hotel">Store</span>
+            </div>
+            <h3 class="event-title">🛒 Tesco Superstore Chester-le-Street</h3>
+            <div class="event-venue">📍 Market Place, Chester-le-Street, DH3 3NL</div>
+            <p class="event-details">Breakfast cafes, cash machine, pharmacy, and emergency supplies. 1.4 miles (4 mins drive) from castle.</p>
+            <div class="card-actions">
+              <a href="https://www.google.com/maps/dir/?api=1&destination=Tesco+Superstore+Chester-le-Street+DH3+3NL" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">🗺️ Directions</a>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- TAB 4: PABLO'S DRIVER & EV HUB                 -->
+      <!-- ============================================== -->
+      <section id="tab-pablo" class="hidden">
+        
+        <div class="pablo-banner">
+          <h2 style="font-size:1.1rem; color:#fff; margin-bottom:4px;">🚗 Pablo's Weekend Strategy</h2>
+          <p style="font-size:0.82rem; color:#c9d1d9;">Zero driving during the stag party so you can drink freely. Car parked safely at Lumley Castle all weekend.</p>
+        </div>
+
+        <div class="timeline">
+          
+          <div class="step-card">
+            <h3 style="font-size:0.95rem; color:#fff; margin-bottom:6px;"><span class="step-num">1</span> Drive Down from Scotland (Fri Morning)</h3>
+            <p style="font-size:0.82rem; color:#c9d1d9; margin-bottom:8px;">Depart ~10:15 in your Kia EV6 GT-Line AWD with 100% charge (~240 mi range). Total drive to Durham area: ~125 miles (~2h 20m).</p>
+            <div class="event-tags">
+              <span class="tag">🔋 Arrive with ~28% battery</span>
+              <span class="tag">🛣️ Via A1(M) South</span>
+            </div>
+          </div>
+
+          <div class="step-card">
+            <h3 style="font-size:0.95rem; color:#fff; margin-bottom:6px;"><span class="step-num">2</span> 12-Min Splash Charge @ Washington Services</h3>
+            <p style="font-size:0.82rem; color:#c9d1d9; margin-bottom:8px;">Pull into Gridserve Moto Washington Southbound at 12:35. Plug into 350kW CCS. In just 12 mins at 230kW peak, your 800V EV6 adds ~35% battery (reaching ~63%).</p>
+            <div class="event-tags">
+              <span class="tag">⚡ 12:35 – 12:47</span>
+              <span class="tag">💳 Cost: ~£18</span>
+              <span class="tag">🔋 63% SoC (150+ mi range)</span>
+            </div>
+            <div class="card-actions" style="margin-top:8px;">
+              <a href="https://www.google.com/maps/dir/?api=1&destination=Moto+Washington+Services+Southbound+NE38+9HA" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">🗺️ Navigate to Charger</a>
+            </div>
+          </div>
+
+          <div class="step-card">
+            <h3 style="font-size:0.95rem; color:#fff; margin-bottom:6px;"><span class="step-num">3</span> Park at Lumley Castle & Drop Bags</h3>
+            <p style="font-size:0.82rem; color:#c9d1d9; margin-bottom:8px;">Drive 7 mins from the charger to Lumley Castle, arriving at 12:58. Park in the courtyard. Free parking for residents. Drop overnight bag at reception.</p>
+            <div class="event-tags">
+              <span class="tag highlight">🔒 Car parked for the weekend — do not touch until Sunday!</span>
+            </div>
+          </div>
+
+          <div class="step-card">
+            <h3 style="font-size:0.95rem; color:#fff; margin-bottom:6px;"><span class="step-num">4</span> 12-Min Uber to Durham Station (13:05)</h3>
+            <p style="font-size:0.82rem; color:#c9d1d9; margin-bottom:8px;">Hail an Uber from the castle gates at 13:05 (~£10). Arrive at Durham Station at 13:18 just as the 10:33 Kings Cross train pulls in! Greet James A, James P, Alex, Rich, and Dan on the platform.</p>
+            <div class="card-actions" style="margin-top:8px;">
+              <a href="https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=Durham+Railway+Station+DH1+4RB" target="_blank" rel="noopener noreferrer" class="btn btn-uber btn-sm">🚕 Order Uber to Station</a>
+            </div>
+          </div>
+
+          <div class="step-card" style="border: 1px solid var(--gold); background: rgba(210,153,34,0.06);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <h3 style="font-size:0.95rem; color:#fff;"><span class="step-num" style="background:var(--gold);">★</span> Saturday Dinner Payment: £110</h3>
+              <span class="event-pill pill-food">Due Soon</span>
+            </div>
+            <p style="font-size:0.82rem; color:#c9d1d9; margin-bottom:8px;">Richard Tosh locked in the Blackfriars menu. Cost is <strong>£110 per person</strong> (covers James A's meal + includes a <strong>£113 group drinks credit</strong>). Send to Richard Tosh:</p>
+            <div style="background:rgba(0,0,0,0.3); padding:8px 12px; border-radius:8px; font-size:0.8rem; margin-bottom:10px; font-family:monospace;">
+              <strong>Richard Tosh</strong><br>
+              Sort Code: <strong>40-04-37</strong><br>
+              Account: <strong>91630652</strong><br>
+              Amount: <strong>£110.00</strong>
+            </div>
+            <div class="card-actions">
+              <button type="button" onclick="copyBankDetails()" class="btn btn-primary btn-sm">📋 1-Tap Copy Bank Details</button>
+              <a href="https://wa.me/447810012907" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">💬 Message RT</a>
+            </div>
+          </div>
+
+          <div class="step-card">
+            <h3 style="font-size:0.95rem; color:#fff; margin-bottom:6px;"><span class="step-num">5</span> Sunday Return Drive (Effortless)</h3>
+            <p style="font-size:0.82rem; color:#c9d1d9;">Check out at 11:00 on Sunday. Your EV6 still has 60%+ battery ready to roll, giving you plenty of juice to hit the road without hunting for slow chargers!</p>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- TAB 5: MASTER GOOGLE DOC HANDBOOK              -->
+      <!-- ============================================== -->
+      <section id="tab-doc" class="hidden">
+        <div class="event-card" style="text-align:center; padding:24px 16px;">
+          <div style="font-size:2.4rem; margin-bottom:12px;">📄</div>
+          <h2 style="font-size:1.2rem; color:#fff; margin-bottom:8px;">Master Google Doc Handbook</h2>
+          <p style="font-size:0.85rem; color:#c9d1d9; line-height:1.5; margin-bottom:20px;">
+            The complete, printable group briefing created in your Google Drive folder:
+            <br><strong>James A’s Stag Weekend: Master Handbook & Itinerary</strong>
+          </p>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <a href="https://docs.google.com/document/d/13AV3V6B19gWAyehsXFX6wfKNjjOPFPEqgZAhzAS6TAc/edit" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="padding:12px;">
+              🚀 Open Master Google Doc
+            </a>
+            <a href="https://drive.google.com/drive/folders/1ZNpTeB5NWvUr5XfgbqpgUxLflJvj0qNw" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+              📁 Open "James stag" Drive Folder
+            </a>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Floating Toast -->
+  <div id="toast">📋 Link copied to clipboard!</div>
+
+  <!-- Bottom Navigation Bar (Flex Anchored) -->
+  <nav class="bottom-nav">
+    <button type="button" class="nav-btn active" onclick="switchTab('schedule', this)">
+      <span class="nav-icon">📅</span>
+      <span>Schedule</span>
+    </button>
+    <button type="button" class="nav-btn" onclick="switchTab('roster', this)">
+      <span class="nav-icon">👥</span>
+      <span>Roster</span>
+    </button>
+    <button type="button" class="nav-btn" onclick="switchTab('locations', this)">
+      <span class="nav-icon">📍</span>
+      <span>Locations</span>
+    </button>
+    <button type="button" class="nav-btn" onclick="switchTab('pablo', this)">
+      <span class="nav-icon">⚡</span>
+      <span>Pablo Hub</span>
+    </button>
+    <button type="button" class="nav-btn" onclick="switchTab('doc', this)">
+      <span class="nav-icon">📄</span>
+      <span>Doc</span>
+    </button>
+  </nav>
+
+  <script>
+    // Event catalog with times and descriptions
+    const events = [
+      {
+        id: "ev-fri-1",
+        day: "fri",
+        timeBadge: "Friday 13:18",
+        title: "London & Bristol Group Arrival",
+        desc: "LNER Kings Cross train (James P, James A, Alex, Rich) & Bristol train (Dan) arrive into Durham Station. Welcome pints in town!",
+        loc: "Durham Railway Station (DH1 4RB)",
+        transit: "12 mins taxi",
+        mapUrl: "https://www.google.com/maps/dir/?api=1&destination=Durham+Railway+Station+DH1+4RB",
+        uberUrl: "https://m.uber.com/ul/?action=setPickup&dropoff[formatted_address]=Durham+Railway+Station+DH1+4RB",
+        nextTitle: "15:00 Check-In @ Lumley Castle",
+        countdown: "in 1h 42m"
+      },
+      {
+        id: "ev-fri-2",
+        day: "fri",
+        timeBadge: "Friday 15:00",
+        title: "Lumley Castle Check-In & Bag Drop",
+        desc: "Rooms open. Just state your name at reception. Rooms prepaid by James P. Free resident parking.",
+        loc: "Lumley Castle Hotel (DH3 4NX)",
+        transit: "Basecamp",
+        mapUrl: "https://www.google.com/maps/dir/?api=1&destination=Lumley+Castle+Hotel+DH3+4NX",
+        uberUrl: "https://m.uber.com/ul/?action=setPickup&dropoff[formatted_address]=Lumley+Castle+Hotel+DH3+4NX",
+        nextTitle: "16:00 Castle Grounds Walk",
+        countdown: "in 1 hour"
+      },
+      {
+        id: "ev-fri-3",
+        day: "fri",
+        timeBadge: "Friday 16:00",
+        title: "Castle Grounds & River Wear Walk",
+        desc: "Casual 1 to 1.5-hour group walk around the castle parkland, woodlands, and the River Wear loop.",
+        loc: "Lumley Castle Grounds",
+        transit: "On-site (Walk)",
+        mapUrl: "https://www.google.com/maps/dir/?api=1&destination=Lumley+Castle+Hotel+DH3+4NX",
+        uberUrl: "https://m.uber.com/ul/?action=setPickup&dropoff[formatted_address]=Lumley+Castle+Hotel+DH3+4NX",
+        nextTitle: "18:30 Library Bar Drinks",
+        countdown: "in 2h 30m"
+      },
+      {
+        id: "ev-fri-4",
+        day: "fri",
+        timeBadge: "Friday 18:30",
+        title: "Pre-Dinner Drinks in Library Bar",
+        desc: "Reconvene for drinks in the castle lounge. Mark Stapleton arrives and joins the group here.",
+        loc: "Library Bar, Lumley Castle",
+        transit: "Inside Castle",
+        mapUrl: "https://www.google.com/maps/dir/?api=1&destination=Lumley+Castle+Hotel+DH3+4NX",
+        uberUrl: "https://m.uber.com/ul/?action=setPickup&dropoff[formatted_address]=Lumley+Castle+Hotel+DH3+4NX",
+        nextTitle: "19:30 Knights Restaurant Dinner",
+        countdown: "in 1 hour"
+      },
+      {
+        id: "ev-fri-5",
+        day: "fri",
+        timeBadge: "Friday 19:30",
+        title: "Dinner at Knights Restaurant",
+        desc: "Vaulted medieval hall dinner banquet. Followed by board games and drinks late into the night.",
+        loc: "Knights Restaurant (Lumley Castle)",
+        transit: "Inside Castle",
+        mapUrl: "https://www.google.com/maps/dir/?api=1&destination=Lumley+Castle+Hotel+DH3+4NX",
+        uberUrl: "https://m.uber.com/ul/?action=setPickup&dropoff[formatted_address]=Lumley+Castle+Hotel+DH3+4NX",
+        nextTitle: "Saturday 10:45 Countryside Hike",
+        countdown: "tomorrow morning"
+      },
+      {
+        id: "ev-sat-2",
+        day: "sat",
+        timeBadge: "Saturday 10:45",
+        title: "Scenic Countryside Hike (Alex)",
+        desc: "Alex leads a 4-5 mile hike through local trails. Wear trail shoes (paths will be muddy!).",
+        loc: "Depart Lumley Castle Courtyard",
+        transit: "Walking",
+        mapUrl: "https://www.google.com/maps/dir/?api=1&destination=Lumley+Castle+Hotel+DH3+4NX",
+        uberUrl: "https://m.uber.com/ul/?action=setPickup&dropoff[formatted_address]=Lumley+Castle+Hotel+DH3+4NX",
+        nextTitle: "13:30 Pub Lunch @ Chester Moor",
+        countdown: "in 2h 45m"
+      },
+      {
+        id: "ev-sat-3",
+        day: "sat",
+        timeBadge: "Saturday 13:30",
+        title: "Pub Lunch @ The Chester Moor",
+        desc: "Hearty pub lunch and pints. Mehal arrives midday and joins the group here! 5-min cab/lift back to castle after.",
+        loc: "The Chester Moor Pub (DH2 3RJ)",
+        transit: "5 mins taxi / lift back",
+        mapUrl: "https://www.google.com/maps/dir/?api=1&destination=The+Chester+Moor+DH2+3RJ",
+        uberUrl: "https://m.uber.com/ul/?action=setPickup&dropoff[formatted_address]=The+Chester+Moor+DH2+3RJ",
+        nextTitle: "17:30 Taxis to Newcastle",
+        countdown: "in 4 hours"
+      },
+      {
+        id: "ev-sat-4",
+        day: "sat",
+        timeBadge: "Saturday 17:30",
+        title: "Taxis Depart for Newcastle",
+        desc: "Pre-booked group taxis depart hotel main entrance for central Newcastle (~25 mins drive).",
+        loc: "Lumley Castle Main Entrance",
+        transit: "25 mins drive",
+        mapUrl: "https://www.google.com/maps/dir/?api=1&destination=Lumley+Castle+Hotel+DH3+4NX",
+        uberUrl: "https://m.uber.com/ul/?action=setPickup&dropoff[formatted_address]=Lumley+Castle+Hotel+DH3+4NX",
+        nextTitle: "18:00 Whiskey Tasting @ Blackfriars",
+        countdown: "in 30 mins"
+      },
+      {
+        id: "ev-sat-5",
+        day: "sat",
+        timeBadge: "Saturday 18:00",
+        title: "Whiskey Tasting Flight & Quiz",
+        desc: "Welcome craft beer, artisan snacks, tutored premium whiskey tasting flight & group quiz at Blackfriars.",
+        loc: "Blackfriars, Newcastle (NE1 4XN)",
+        transit: "Central Newcastle",
+        mapUrl: "https://www.google.com/maps/dir/?api=1&destination=Blackfriars+Restaurant+Newcastle+NE1+4XN",
+        uberUrl: "https://m.uber.com/ul/?action=setPickup&dropoff[formatted_address]=Blackfriars+Restaurant+Newcastle+NE1+4XN",
+        nextTitle: "20:00 Pre-Ordered Dinner",
+        countdown: "in 2 hours"
+      },
+      {
+        id: "ev-sat-6",
+        day: "sat",
+        timeBadge: "Saturday 20:00",
+        title: "3-Course Dinner @ Blackfriars Banquet Hall",
+        desc: "Pre-ordered 3-course dinner in the medieval hall. £110/pp to Richard Tosh (covers James + £113 group drinks credit!). Followed by Newcastle nightlife.",
+        loc: "Blackfriars, Newcastle (NE1 4XN)",
+        transit: "Central Newcastle",
+        mapUrl: "https://www.google.com/maps/dir/?api=1&destination=Blackfriars+Restaurant+Newcastle+NE1+4XN",
+        uberUrl: "https://m.uber.com/ul/?action=setPickup&dropoff[formatted_address]=Blackfriars+Restaurant+Newcastle+NE1+4XN",
+        nextTitle: "Sunday 11:00 Check-Out",
+        countdown: "tomorrow 11am"
+      },
+      {
+        id: "ev-sun-2",
+        day: "sun",
+        timeBadge: "Sunday 11:00",
+        title: "Check-Out & Departures",
+        desc: "Vacate rooms by 11:00. Safe travels home to Scotland, London, and Bristol!",
+        loc: "Lumley Castle Reception",
+        transit: "Safe trip home!",
+        mapUrl: "https://www.google.com/maps/dir/?api=1&destination=Lumley+Castle+Hotel+DH3+4NX",
+        uberUrl: "https://m.uber.com/ul/?action=setPickup&dropoff[formatted_address]=Lumley+Castle+Hotel+DH3+4NX",
+        nextTitle: "Weekend Complete 🎉",
+        countdown: "All done!"
+      }
+    ];
+
+    function updateHero(ev, shouldScroll = false) {
+      document.getElementById('hero-time-badge').innerText = ev.timeBadge;
+      document.getElementById('hero-title').innerText = ev.title;
+      document.getElementById('hero-desc').innerText = ev.desc;
+      document.getElementById('hero-location').innerText = ev.loc;
+      document.getElementById('hero-transit').innerText = ev.transit;
+      document.getElementById('hero-maps-btn').href = ev.mapUrl;
+      document.getElementById('hero-uber-btn').href = ev.uberUrl;
+      document.getElementById('hero-next-title').innerText = ev.nextTitle;
+      document.getElementById('hero-next-countdown').innerText = ev.countdown;
+
+      // Highlight active card in schedule
+      document.querySelectorAll('.event-card').forEach(c => c.classList.remove('current'));
+      const activeCard = document.getElementById(ev.id);
+      if (activeCard) {
+        activeCard.classList.add('current');
+        // Smoothly scroll only when user initiated simulator selection
+        if (shouldScroll) {
+          activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }
+    }
+
+    function simulateTime(val) {
+      // Ensure we switch to Schedule tab and reset day filters so card is visible
+      switchTab('schedule', document.querySelectorAll('.nav-btn')[0]);
+      
+      let targetEv = events[0];
+      if (val === 'FRI_1300') targetEv = events[0];
+      else if (val === 'FRI_1500') targetEv = events[1];
+      else if (val === 'FRI_1600') targetEv = events[2];
+      else if (val === 'FRI_1830') targetEv = events[3];
+      else if (val === 'FRI_1930') targetEv = events[4];
+      else if (val === 'SAT_1045') targetEv = events[5];
+      else if (val === 'SAT_1330') targetEv = events[6];
+      else if (val === 'SAT_1730') targetEv = events[7];
+      else if (val === 'SAT_1800') targetEv = events[8];
+      else if (val === 'SAT_2000') targetEv = events[9];
+      else if (val === 'SUN_1100') targetEv = events[10];
+
+      // Reset day filter to 'all' so target card is unhidden
+      filterScheduleDay('all', document.querySelectorAll('#tab-schedule .chip')[0]);
+      
+      updateHero(targetEv, true);
+    }
+
+    function switchTab(tabId, el) {
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+      if (el) el.classList.add('active');
+
+      document.getElementById('tab-schedule').classList.add('hidden');
+      document.getElementById('tab-roster').classList.add('hidden');
+      document.getElementById('tab-locations').classList.add('hidden');
+      document.getElementById('tab-pablo').classList.add('hidden');
+      document.getElementById('tab-doc').classList.add('hidden');
+
+      const target = document.getElementById('tab-' + tabId);
+      if (target) {
+        target.classList.remove('hidden');
+        document.getElementById('main-scroll').scrollTop = 0;
+      }
+    }
+
+    function filterScheduleDay(day, chip) {
+      document.querySelectorAll('#tab-schedule .chip').forEach(c => c.classList.remove('active'));
+      if (chip) chip.classList.add('active');
+
+      const groups = document.querySelectorAll('.day-group');
+      groups.forEach(g => {
+        if (day === 'all' || g.getAttribute('data-day') === day) {
+          g.classList.remove('hidden');
+        } else {
+          g.classList.add('hidden');
+        }
+      });
+    }
+
+    // Unified Roster Filter State
+    let activeRosterCat = 'all';
+
+    function setRosterCategory(cat, chip) {
+      document.querySelectorAll('#tab-roster .chip').forEach(c => c.classList.remove('active'));
+      if (chip) chip.classList.add('active');
+      activeRosterCat = cat;
+      applyRosterFilter();
+    }
+
+    function applyRosterFilter() {
+      const searchBox = document.getElementById('attendee-search');
+      const q = (searchBox ? searchBox.value : '').toLowerCase().trim();
+
+      document.querySelectorAll('.attendee-card').forEach(card => {
+        const itemCat = card.getAttribute('data-cat') || '';
+        const matchCat = (activeRosterCat === 'all' || itemCat.includes(activeRosterCat));
+        const text = card.textContent.toLowerCase();
+        const matchQuery = !q || text.includes(q);
+
+        if (matchCat && matchQuery) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+    }
+
+    function filterLocations(cat, chip) {
+      document.querySelectorAll('#tab-locations .chip').forEach(c => c.classList.remove('active'));
+      if (chip) chip.classList.add('active');
+
+      document.querySelectorAll('#locations-list .event-card').forEach(card => {
+        const itemCat = card.getAttribute('data-loc-cat') || '';
+        if (cat === 'all' || itemCat === cat) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+    }
+
+    function copyBankDetails() {
+      const details = "Richard Tosh\nSort Code: 40-04-37\nAccount: 91630652\nAmount: £110.00\nRef: Pablo Savva Stag Dinner";
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(details).then(() => {
+            showToast("💳 Copied Richard Tosh's bank details (£110)!");
+          }).catch(() => {
+            showToast("💳 40-04-37 / 91630652 (Richard Tosh £110)");
+          });
+        } else {
+          showToast("💳 40-04-37 / 91630652 (Richard Tosh £110)");
+        }
+      } catch (e) {
+        showToast("💳 40-04-37 / 91630652 (Richard Tosh £110)");
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      if (t) {
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2500);
+      }
+    }
+
+    function sharePlan() {
+      if (navigator.share) {
+        navigator.share({
+          title: "James A's Stagathon Master Plan",
+          text: "Here is the master plan for James A's Stag Weekend at Lumley Castle!",
+          url: window.location.href
+        }).catch(() => {});
+      } else {
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+              showToast("📋 Link copied to clipboard!");
+            }).catch(() => {
+              showToast("🔗 Share link ready in browser");
+            });
+          } else {
+            showToast("🔗 Share link ready in browser");
+          }
+        } catch (e) {
+          showToast("🔗 Share link ready in browser");
+        }
+      }
+    }
+
+    // Initialize on page load without jumping scroll position
+    document.addEventListener('DOMContentLoaded', () => {
+      updateHero(events[0], false);
+    });
+  </script>
+</body>
+</html>
