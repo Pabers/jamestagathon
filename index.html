@@ -597,6 +597,33 @@
       <!-- ============================================== -->
       <section id="tab-schedule">
 
+        <!-- Squad Portrait Showcase Card -->
+        <div class="squad-hero-card" style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; overflow: hidden; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+          <div style="position: relative; width: 100%; aspect-ratio: 16/9; overflow: hidden; background: #0d1117;">
+            <img id="squad-photo-img" src="assets/stag_squad_golden.jpg" alt="James' Stag Squad at Lumley Castle" style="width: 100%; height: 100%; object-fit: cover; transition: opacity 0.3s ease; display: block;">
+            <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); padding: 4px 8px; border-radius: 6px; font-size: 0.65rem; color: #8b949e; border: 1px solid rgba(255,255,255,0.1);">
+              🏰 Lumley Castle Courtyard
+            </div>
+          </div>
+          
+          <div style="padding: 12px 14px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 1.1rem;">👑</span>
+                <strong style="color: #fff; font-size: 0.92rem;">The Official Stag Squad</strong>
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button type="button" class="photo-toggle active" id="btn-photo-1" onclick="switchSquadPhoto(1)" style="font-size: 0.7rem; padding: 4px 10px; border-radius: 6px; background: var(--accent); color: #0d1117; font-weight: 700; border: none; cursor: pointer;">🌅 Golden Hour</button>
+                <button type="button" class="photo-toggle" id="btn-photo-2" onclick="switchSquadPhoto(2)" style="font-size: 0.7rem; padding: 4px 10px; border-radius: 6px; background: #21262d; color: var(--text-muted); font-weight: 600; border: 1px solid var(--card-border); cursor: pointer;">⛳ Golf Weekend</button>
+              </div>
+            </div>
+            
+            <p id="squad-photo-caption" style="font-size: 0.78rem; color: #c9d1d9; line-height: 1.45; margin: 0;">
+              🤖 <em>AI Lore:</em> Gemini Nano Banana convinced itself that <strong>Chris</strong> is the stag being treated like royalty, while <strong>James</strong> (the actual groom) is doing the heavy lifting holding Chris's legs up!
+            </p>
+          </div>
+        </div>
+
         <!-- Now & Next Hero Card -->
         <div class="hero-card" id="hero-card">
           <div class="hero-top">
@@ -861,6 +888,16 @@
       <!-- TAB 2: ROSTER / ATTENDEES                      -->
       <!-- ============================================== -->
       <section id="tab-roster" class="hidden">
+
+        <!-- Squad Photo Banner -->
+        <div style="position: relative; border-radius: 12px; overflow: hidden; margin-bottom: 14px; border: 1px solid var(--card-border); box-shadow: 0 4px 14px rgba(0,0,0,0.3);">
+          <img src="assets/stag_squad_golden.jpg" alt="The Stag Squad" style="width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block;">
+          <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(0deg, rgba(13,17,23,0.95) 0%, rgba(13,17,23,0.6) 65%, transparent 100%); padding: 12px 14px;">
+            <div style="color: #fff; font-weight: 700; font-size: 0.95rem;">🏰 The 11 Legends of Lumley Castle</div>
+            <div style="color: var(--accent); font-size: 0.75rem; margin-top: 2px;">James A (Groom & Official Leg Lifter) • 9 Full Weekend • 2 Single-Nighters</div>
+          </div>
+        </div>
+
         <input type="text" class="search-input" id="attendee-search" placeholder="🔍 Search attendees (e.g. Alex, Andy, Mehal)..." oninput="applyRosterFilter()">
 
         <!-- Roster Filter Chips -->
@@ -1160,8 +1197,10 @@
       <!-- TAB 5: MASTER GOOGLE DOC HANDBOOK              -->
       <!-- ============================================== -->
       <section id="tab-doc" class="hidden">
-        <div class="event-card" style="text-align:center; padding:24px 16px;">
-          <div style="font-size:2.4rem; margin-bottom:12px;">📄</div>
+        <div class="event-card" style="text-align:center; padding:16px;">
+          <div style="border-radius: 10px; overflow: hidden; margin-bottom: 14px; border: 1px solid var(--card-border); box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+            <img src="assets/stag_squad_blue_sky.jpg" alt="Handbook Briefing Cover" style="width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block;">
+          </div>
           <h2 style="font-size:1.2rem; color:#fff; margin-bottom:8px;">Master Google Doc Handbook</h2>
           <p style="font-size:0.85rem; color:#c9d1d9; line-height:1.5; margin-bottom:20px;">
             The complete, printable group briefing created in your Google Drive folder:
@@ -1507,6 +1546,30 @@
           }
         } catch (e) {
           showToast("🔗 Share link ready in browser");
+        }
+      }
+    }
+
+    function switchSquadPhoto(n) {
+      const img = document.getElementById('squad-photo-img');
+      const b1 = document.getElementById('btn-photo-1');
+      const b2 = document.getElementById('btn-photo-2');
+      const caption = document.getElementById('squad-photo-caption');
+      if (!img) return;
+
+      if (n === 1) {
+        img.src = 'assets/stag_squad_golden.jpg';
+        if (b1) { b1.style.background = 'var(--accent)'; b1.style.color = '#0d1117'; }
+        if (b2) { b2.style.background = '#21262d'; b2.style.color = 'var(--text-muted)'; }
+        if (caption) {
+          caption.innerHTML = '🤖 <em>AI Lore:</em> Gemini Nano Banana convinced itself that <strong>Chris</strong> is the stag being treated like royalty, while <strong>James</strong> (the actual groom) is doing the heavy lifting holding Chris\'s legs up!';
+        }
+      } else {
+        img.src = 'assets/stag_squad_blue_sky.jpg';
+        if (b2) { b2.style.background = 'var(--accent)'; b2.style.color = '#0d1117'; }
+        if (b1) { b1.style.background = '#21262d'; b1.style.color = 'var(--text-muted)'; }
+        if (caption) {
+          caption.innerHTML = '⛳ <em>Castle Golf Edition:</em> Pint in hand, kilt deployed, and Chris still floating on air in front of Lumley Castle!';
         }
       }
     }
