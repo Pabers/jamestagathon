@@ -1,0 +1,11 @@
+# James A's Stagathon - Private Event Web App
+# Prevents public search engines and bots from indexing pages or images
+
+User-agent: Googlebot-Image
+Disallow: /
+
+User-agent: msnbot-media
+Disallow: /
+
+User-agent: *
+Allow: /
